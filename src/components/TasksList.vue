@@ -8,19 +8,19 @@
       <ul class="tasks-list__wrapper__list" v-if="tasksExists">
         <li
           class="tasks-list__wrapper__list--item"
-          v-for="(taskItem, index) in tasks"
+          v-for="(taskItem, index) in sortedTasks"
           :key="`${index}-${Math.random()}`"
         >
           <input
             class="tasks-list__wrapper__list--item__checkbox"
             type="checkbox"
             :checked="!!taskItem.finishedAt"
-            @input="toggleStatus(index)"
+            @input="toggleStatus(taskItem.position)"
           />
 
-          <span class="tasks-list__wrapper__list--item__label">{{
-            taskItem.task
-          }}</span>
+          <span class="tasks-list__wrapper__list--item__label">
+            # {{ taskItem.position }} {{ taskItem.task }}
+          </span>
 
           <span
             class="tasks-list__wrapper__list--item__label"
@@ -35,7 +35,6 @@
 </template>
 
 <script>
-import updateArrayByIndex from "../utils/update-array-by-index";
 import intlDateTime from "../utils/intl-date-time.js";
 
 export default {
@@ -56,24 +55,57 @@ export default {
     listMessage() {
       return `${this.tasksExists ? "Current" : "No"} Tasks`;
     },
+
+    tasksByPosition() {
+      const mapByIndex = (tasks) =>
+        tasks.map((task, index) => ({ ...task, position: index + 1 }));
+
+      return this.modifyArrayBy(this.tasks, mapByIndex);
+    },
+
+    unfinishedTasks() {
+      const filterByNotFinished = (tasks) =>
+        tasks.filter((task) => !task.finishedAt);
+
+      return this.modifyArrayBy(this.tasksByPosition, filterByNotFinished);
+    },
+
+    finishedTasks() {
+      const filterByFinished = (tasks) =>
+        tasks.filter((task) => task.finishedAt);
+
+      return this.modifyArrayBy(this.tasksByPosition, filterByFinished);
+    },
+
+    sortedTasks() {
+      const sortByPosition = (tasks) =>
+        tasks.sort((taskA, taskB) => taskA.position - taskB.position);
+
+      return this.modifyArrayBy(this.tasksByPosition, sortByPosition);
+    },
   },
 
   methods: {
     toggleStatus(index) {
-      const taskToUpdate = index >= 0 && this.tasks[index];
+      const realIndex = index - 1;
+      const taskToUpdate = index >= 0 && this.tasks[realIndex];
 
-      if (taskToUpdate?.finishedAt) {
+      if (taskToUpdate.finishedAt) {
         taskToUpdate.finishedAt = undefined;
       } else {
-        const arrayUpdated = updateArrayByIndex(
-          this.tasks,
-          index,
-          "finishedAt",
-          Date.now()
-        );
+        const temp = this.tasks;
 
-        this.emit("update:tasks", arrayUpdated);
+        const updatedTask = this.tasks[realIndex];
+        taskToUpdate.finishedAt = Date.now();
+
+        temp[realIndex] = updatedTask;
+
+        this.$emit("update:tasks", temp);
       }
+    },
+
+    modifyArrayBy(arr, modify) {
+      return arr?.length ? modify(arr) : [];
     },
 
     formatDate(date) {
@@ -103,6 +135,10 @@ export default {
 
     &__list {
       list-style: none;
+
+      &--item {
+        margin-bottom: 8px;
+      }
     }
   }
 }
