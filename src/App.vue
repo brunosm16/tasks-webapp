@@ -1,16 +1,17 @@
 <template>
   <div id="app">
-    <CurrentTime />
+    <ToDo />
   </div>
 </template>
 
 <script>
-import CurrentTime from "./components/CurrentTime.vue";
+import ToDo from "./components/ToDo.vue";
 
 export default {
   name: "App",
+
   components: {
-    CurrentTime,
+    ToDo,
   },
 };
 </script>
