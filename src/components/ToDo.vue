@@ -1,13 +1,15 @@
 <template>
   <div class="to-do">
-    <CurrentTime class="col-3" />
-    <TaskInput class="col-6" @add-task="pushTask" />
+    <CurrentTime />
+    <TaskInput @add-task="pushTask" />
+    <TasksList v-model:tasks="tasks" />
   </div>
 </template>
 
 <script>
 import CurrentTime from "./CurrentTime.vue";
 import TaskInput from "./TaskInput.vue";
+import TasksList from "./TasksList.vue";
 
 export default {
   name: "ToDo",
@@ -15,6 +17,7 @@ export default {
   components: {
     CurrentTime,
     TaskInput,
+    TasksList,
   },
 
   data: () => ({
@@ -37,9 +40,10 @@ export default {
 <style lang="scss" scoped>
 .to-do {
   display: flex;
-  justify-content: space-around;
   align-items: center;
+  justify-content: space-around;
+  flex-wrap: wrap;
   padding: 30px;
-  gap: 50px;
+  gap: 15px;
 }
 </style>
