@@ -2,7 +2,12 @@
   <div class="task-input">
     <div class="task-input__wrapper">
       <h2 class="task-input__wrapper__header">New Task</h2>
-      <input class="task-input__wrapper__input" type="text" v-model="task" />
+      <input
+        class="task-input__wrapper__input"
+        :class="inputErrorClass"
+        type="text"
+        v-model="task"
+      />
     </div>
     <button class="task-input__add-button" @click="addTask">Add Task</button>
   </div>
@@ -14,12 +19,34 @@ export default {
 
   data: () => ({
     task: "",
+    taskFieldValid: true,
   }),
 
+  computed: {
+    inputErrorClass() {
+      return this.taskFieldValid ? "" : "task-input__wrapper__input-error";
+    },
+  },
+
   methods: {
+    validateTaskField() {
+      if (this.task?.length < 5) {
+        this.taskFieldValid = false;
+        return true;
+      }
+
+      this.taskFieldValid = true;
+
+      return false;
+    },
+
     addTask() {
+      if (this.validateTaskField()) return false;
+
       this.$emit("add-task", this.task);
       this.task = "";
+
+      return true;
     },
   },
 };
@@ -40,6 +67,10 @@ export default {
       border-bottom: 3px #1d3557 solid;
       outline: none;
       margin: 15px;
+
+      &-error {
+        border-bottom: 2px red solid;
+      }
     }
   }
 
