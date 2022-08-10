@@ -26,7 +26,7 @@
             class="tasks-list__wrapper__list--item__label"
             v-if="taskItem.finishedAt"
           >
-            {{ taskItem.finishedAt }}
+            | Done at : {{ formatDate(taskItem.finishedAt) }}
           </span>
         </li>
       </ul>
@@ -36,6 +36,7 @@
 
 <script>
 import updateArrayByIndex from "../utils/update-array-by-index";
+import intlDateTime from "../utils/intl-date-time.js";
 
 export default {
   name: "TasksLists",
@@ -73,6 +74,13 @@ export default {
 
         this.emit("update:tasks", arrayUpdated);
       }
+    },
+
+    formatDate(date) {
+      if (!date) return "";
+      if (typeof date !== "number") return date;
+
+      return intlDateTime(date);
     },
   },
 };

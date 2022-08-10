@@ -1,4 +1,4 @@
-export default () => {
+export default (value = new Date()) => {
   const formattedDateValues = {
     year: "numeric",
     month: "numeric",
@@ -17,5 +17,5 @@ export default () => {
     formattedDateValues
   );
 
-  return intlDateTime.format(new Date());
+  return intlDateTime.format(value);
 };
