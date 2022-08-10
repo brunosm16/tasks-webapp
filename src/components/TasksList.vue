@@ -1,11 +1,11 @@
 <template>
   <div class="tasks-list">
     <h2 class="tasks-list__header">
-      {{ tasks.length ? "Current" : "No" }} Tasks
+      {{ listMessage }}
     </h2>
 
     <div class="tasks-list__wrapper">
-      <ul class="tasks-list__wrapper__list" v-if="tasks.length">
+      <ul class="tasks-list__wrapper__list" v-if="tasksExists">
         <li
           class="tasks-list__wrapper__list--item"
           v-for="(taskItem, index) in tasks"
@@ -44,6 +44,16 @@ export default {
     tasks: {
       type: Array,
       default: () => [],
+    },
+  },
+
+  computed: {
+    tasksExists() {
+      return !!this.tasks.length;
+    },
+
+    listMessage() {
+      return `${this.tasksExists ? "Current" : "No"} Tasks`;
     },
   },
 
