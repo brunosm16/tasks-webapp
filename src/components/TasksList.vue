@@ -4,11 +4,53 @@
       {{ listMessage }}
     </h2>
 
-    <div class="tasks-list__wrapper">
-      <ul class="tasks-list__wrapper__list" v-if="tasksExists">
+    <div class="tasks-list__wrapper" v-if="tasksExists">
+      <div class="tasks-list__wrapper__inputs">
+        <div class="tasks-list__wrapper__inputs--input">
+          <input
+            v-model="filterByFinished"
+            type="checkbox"
+            name="filterByFinished"
+            id="filterByFinished"
+          />
+          <label for="filterByFinished">Filter By Finished</label>
+        </div>
+
+        <div class="tasks-list__wrapper__inputs--input">
+          <input
+            v-model="filterByUnfinished"
+            type="checkbox"
+            name="filterByUnfinished"
+            id="filterByUnfinished"
+          />
+          <label for="filterByUnfinished">Filter By Unfinished</label>
+        </div>
+
+        <div class="tasks-list__wrapper__inputs--input">
+          <input
+            v-model="sortByFinishTime"
+            type="checkbox"
+            name="sortByFinishTime"
+            id="sortByFinishTime"
+          />
+          <label for="sortByFinishTime">Sort By Finish Time</label>
+        </div>
+
+        <div class="tasks-list__wrapper__inputs--input">
+          <input
+            v-model="reverseOrder"
+            type="checkbox"
+            name="reverseOrder"
+            id="sortByFinishTime"
+          />
+          <label for="reverseOrder">Reverse Order</label>
+        </div>
+      </div>
+
+      <ul class="tasks-list__wrapper__list">
         <li
           class="tasks-list__wrapper__list--item"
-          v-for="(taskItem, index) in sortedTasks"
+          v-for="(taskItem, index) in displayTasks"
           :key="`${index}-${Math.random()}`"
         >
           <input
@@ -40,6 +82,13 @@ import intlDateTime from "../utils/intl-date-time.js";
 export default {
   name: "TasksLists",
 
+  data: () => ({
+    filterByFinished: false,
+    filterByUnfinished: false,
+    sortByFinishTime: false,
+    reverseOrder: false,
+  }),
+
   props: {
     tasks: {
       type: Array,
@@ -56,39 +105,31 @@ export default {
       return `${this.tasksExists ? "Current" : "No"} Tasks`;
     },
 
-    tasksByPosition() {
-      const mapByIndex = (tasks) =>
-        tasks.map((task, index) => ({ ...task, position: index + 1 }));
+    displayTasks() {
+      let tasks = this.sortedTasksByPosition(this.tasks);
 
-      return this.modifyArrayBy(this.tasks, mapByIndex);
-    },
+      if (this.reverseOrder) {
+        tasks = tasks.reverse();
+      }
 
-    unfinishedTasks() {
-      const filterByNotFinished = (tasks) =>
-        tasks.filter((task) => !task.finishedAt);
+      if (this.filterByFinished || this.filterByUnfinished) {
+        tasks = this.getFilteredTasksByStatus(tasks);
+      }
 
-      return this.modifyArrayBy(this.tasksByPosition, filterByNotFinished);
-    },
+      if (this.sortByFinishTime) {
+        tasks = this.getSortedByFinishTime(tasks);
+      }
 
-    finishedTasks() {
-      const filterByFinished = (tasks) =>
-        tasks.filter((task) => task.finishedAt);
-
-      return this.modifyArrayBy(this.tasksByPosition, filterByFinished);
-    },
-
-    sortedTasks() {
-      const sortByPosition = (tasks) =>
-        tasks.sort((taskA, taskB) => taskA.position - taskB.position);
-
-      return this.modifyArrayBy(this.tasksByPosition, sortByPosition);
+      return tasks;
     },
   },
 
   methods: {
     toggleStatus(index) {
+      if (index <= 0) return;
+
       const realIndex = index - 1;
-      const taskToUpdate = index >= 0 && this.tasks[realIndex];
+      const taskToUpdate = this.tasks[realIndex];
 
       if (taskToUpdate.finishedAt) {
         taskToUpdate.finishedAt = undefined;
@@ -102,11 +143,55 @@ export default {
 
         this.$emit("update:tasks", temp);
       }
+
+      console.log(taskToUpdate);
+    },
+
+    sortedTasksByPosition(tasksArr) {
+      return this.modifyArrayBy(
+        this.tasksWithPosition(tasksArr),
+        this.sortByPosition
+      );
+    },
+
+    tasksWithPosition(tasksArr) {
+      return this.modifyArrayBy(tasksArr, this.mapByIndex);
+    },
+
+    getFilteredTasksByStatus(tasksArr) {
+      const hasBothFilter = this.filterByFinished && this.filterByUnfinished;
+
+      return hasBothFilter
+        ? tasksArr
+        : this.modifyArrayBy(
+            tasksArr,
+            this.filterByType.bind(null, this.filterByFinished)
+          );
+    },
+
+    getSortedByFinishTime(tasksArr) {
+      return this.modifyArrayBy(tasksArr, this.tasksByFinishTime);
     },
 
     modifyArrayBy(arr, modify) {
       return arr?.length ? modify(arr) : [];
     },
+
+    mapByIndex: (tasks) =>
+      tasks.map((task, index) => ({ ...task, position: index + 1 })),
+
+    filterByType: (filterByFinished, tasks) =>
+      tasks.filter((task) =>
+        filterByFinished ? task.finishedAt : !task.finishedAt
+      ),
+
+    tasksByFinishTime: (tasks) =>
+      tasks.sort(
+        (taskA, taskB) => (taskB.finishedAt || 0) - (taskA.finishedAt || 0)
+      ),
+
+    sortByPosition: (tasks) =>
+      tasks.sort((taskA, taskB) => taskA.position - taskB.position),
 
     formatDate(date) {
       if (!date) return "";
@@ -139,6 +224,13 @@ export default {
       &--item {
         margin-bottom: 8px;
       }
+    }
+
+    &__inputs {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      margin: 8px;
     }
   }
 }
