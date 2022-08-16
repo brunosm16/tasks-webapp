@@ -50,6 +50,7 @@
       <ul class="tasks-list__wrapper__list">
         <li
           class="tasks-list__wrapper__list--item"
+          :class="taskItem.finishedAt ? 'task-done' : ''"
           v-for="(taskItem, index) in displayTasks"
           :key="`${index}-${Math.random()}`"
         >
@@ -143,8 +144,6 @@ export default {
 
         this.$emit("update:tasks", temp);
       }
-
-      console.log(taskToUpdate);
     },
 
     sortedTasksByPosition(tasksArr) {
@@ -204,6 +203,16 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@keyframes backgroundColorChange {
+  from {
+    background-color: inherit;
+  }
+
+  to {
+    background-color: #e63946;
+  }
+}
+
 .tasks-list {
   width: 90%;
   background: #2b2d42;
@@ -222,7 +231,17 @@ export default {
       list-style: none;
 
       &--item {
-        margin-bottom: 8px;
+        padding: 5px;
+        margin: 8px 15px;
+
+        &:nth-child(even) {
+          background-color: #457b9d;
+        }
+      }
+
+      &--item.task-done {
+        animation: backgroundColorChange 1s ease;
+        background-color: #e63946;
       }
     }
 
